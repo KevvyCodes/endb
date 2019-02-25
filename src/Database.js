@@ -1,12 +1,15 @@
 'use strict';
 
 const SQLite = require('better-sqlite3');
+const EventEmitter = require('events').EventEmitter;
 
 /**
  * @class The Database
+ * @extends EventEmitter
  */
-class Database {
+class Database extends EventEmitter {
     constructor(options = {}) {
+        super(options);
 
         /**
          * The name of the database
@@ -32,10 +35,10 @@ class Database {
          */
         this.db = new SQLite('database.sqlite', {
             memory: this.memory,
-            timeout: this.timeout
+            timeout: this.timeout,
         });
 
-        this.validateOptions(options);
+        this._validateOptions(options);
     }
 
     /**
@@ -68,8 +71,9 @@ class Database {
     /**
      * Checks if the table exists in the database
      * @returns {*}
+     * @private
      */
-    check() {
+    _check() {
         this.db.prepare(`CREATE TABLE IF NOT EXISTS ${this.name} (key TEXT PRIMARY KEY, value TEXT)`).run();
     }
 
@@ -79,8 +83,8 @@ class Database {
      * @returns {boolean}
      */
     delete(key) {
-        this.check();
-        this.db.prepare(`DELETE FROM ${this.name} WHERE key = '${key}'`).run();
+        this._check();
+        this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?)`).run(key);
         return true;
     }
 
@@ -89,9 +93,18 @@ class Database {
      * @returns {boolean}
      */
     deleteAll() {
-        this.check();
-        this.db.prepare(`DELETE FROM ${this.name};`).run();
+        this._check();
+        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!data) return false;
+        this.db.prepare(`DELETE FROM ${this.name}`).run();
         return true;
+    }
+
+    find(prefix) {
+        this._check();
+        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
+        const row = this.row2Obj(data);
+        return row;
     }
 
     /**
@@ -100,7 +113,7 @@ class Database {
      * @returns {string|number|Object}
      */
     get(key) {
-        this.check();
+        this._check();
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!data) return null;
         try {
@@ -108,6 +121,14 @@ class Database {
         } catch (err) {
             data.value;
         }
+
+        /**
+         * Emitted whenever get method is called
+         * @event Database#get
+         * @param {string|number|Object} data
+         */
+        this.emit('get', data);
+
         return data.value;
     }
 
@@ -116,7 +137,7 @@ class Database {
      * @returns {Array<Object>}
      */
     getAll() {
-        this.check();
+        this._check();
         const rows = this.db.prepare(`SELECT * FROM ${this.name} WHERE key IS NOT NULL`).all();
         return rows;
     }
@@ -127,9 +148,19 @@ class Database {
      * @returns {boolean}
      */
     has(key) {
-        this.check();
+        this._check();
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         return data ? true : false;
+    }
+
+    row2Obj(rows) {
+        const _row = {};
+        for (const i in rows) {
+            const row = rows[i];
+            const key = row.key;
+            _row[key] = JSON.parse(row.value);
+        }
+        return _row;
     }
 
     /**
@@ -139,21 +170,31 @@ class Database {
      * @returns {Object}
      */
     set(key, value) {
-        this.check();
+        this._check();
         if (!key || !value) throw new TypeError('No key and value supplied');
         value = typeof value === 'object' ? JSON.stringify(value) : value;
         this.db.prepare(`INSERT INTO ${this.name} (key,value) VALUES (?,?)`).run(key, value);
-        return {
+        const data = {
             key,
-            value
+            value,
         };
+
+        /**
+         * Emitted whenever set method is called
+         * @event Database#set
+         * @param {string|number|Object} data
+         */
+        this.emit('set', data);
+
+        return data;
     }
 
     /**
      * Validates the database options
      * @param {DatabaseOptions} options
+     * @private
      */
-    validateOptions(options) {
+    _validateOptions(options) {
         if (options.name && typeof options.name !== 'string') {
             throw new TypeError('Database name must be a string');
         }

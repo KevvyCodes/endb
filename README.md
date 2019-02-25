@@ -41,6 +41,7 @@ db.has('account_1234567890'); // -> true
 ```
 
 ## Links
+* [Documentation](https://endb.js.org)
 * [GitHub](https://github.com/chroventer/endb)
 * [NPM](https://npmjs.com/package/endb)
 

@@ -37,7 +37,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" target="_blank" class="menu-item" id="website_link" >Project Website</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm_link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#check">check</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li><li data-type='method' style='display: none;'><a href="Database.html#validateOptions">validateOptions</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" target="_blank" class="menu-item" id="website_link" >Project Website</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm_link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li><li data-type='method' style='display: none;'><a href="Database.html#validateOptions">validateOptions</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
 </nav>
 
 <div id="main">
@@ -55,12 +55,15 @@
             <pre class="prettyprint source linenums"><code>'use strict';
 
 const SQLite = require('better-sqlite3');
+const EventEmitter = require('events').EventEmitter;
 
 /**
  * @class The Database
+ * @extends EventEmitter
  */
-class Database {
+class Database extends EventEmitter {
     constructor(options = {}) {
+        super(options);
 
         /**
          * The name of the database
@@ -86,7 +89,7 @@ class Database {
          */
         this.db = new SQLite('database.sqlite', {
             memory: this.memory,
-            timeout: this.timeout
+            timeout: this.timeout,
         });
 
         this.validateOptions(options);
@@ -107,7 +110,7 @@ class Database {
      */
     get indexes() {
         const rows = this.db.prepare(`SELECT key FROM '${this.name}'`).all();
-        return rows.map((row) => row.key);
+        return rows.map(row => row.key);
     }
 
     /**
@@ -122,8 +125,9 @@ class Database {
     /**
      * Checks if the table exists in the database
      * @returns {*}
+     * @private
      */
-    check() {
+    _check() {
         this.db.prepare(`CREATE TABLE IF NOT EXISTS ${this.name} (key TEXT PRIMARY KEY, value TEXT)`).run();
     }
 
@@ -134,7 +138,7 @@ class Database {
      */
     delete(key) {
         this.check();
-        this.db.prepare(`DELETE FROM ${this.name} WHERE key = '${key}'`).run();
+        this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?)`).run(key);
         return true;
     }
 
@@ -144,8 +148,17 @@ class Database {
      */
     deleteAll() {
         this.check();
-        this.db.prepare(`DELETE FROM ${this.name};`).run();
+        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!data) return false;
+        this.db.prepare(`DELETE FROM ${this.name}`).run();
         return true;
+    }
+
+    find(prefix) {
+        this.check();
+        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
+        const row = this.row2Obj(data);
+        return row;
     }
 
     /**
@@ -162,6 +175,14 @@ class Database {
         } catch (err) {
             data.value;
         }
+
+        /**
+         * Emitted whenever get method is called
+         * @event Database#get
+         * @param {string|number|Object} data
+         */
+        this.emit('get', data);
+
         return data.value;
     }
 
@@ -183,7 +204,17 @@ class Database {
     has(key) {
         this.check();
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        return data ? true : false;
+        return !!data;
+    }
+
+    row2Obj(rows) {
+        const _row = {};
+        for (const i in rows) {
+            const row = rows[i];
+            const key = row.key;
+            _row[key] = JSON.parse(row.value);
+        }
+        return _row;
     }
 
     /**
@@ -197,10 +228,19 @@ class Database {
         if (!key || !value) throw new TypeError('No key and value supplied');
         value = typeof value === 'object' ? JSON.stringify(value) : value;
         this.db.prepare(`INSERT INTO ${this.name} (key,value) VALUES (?,?)`).run(key, value);
-        return {
+        const data = {
             key,
-            value
+            value,
         };
+
+        /**
+         * Emitted whenever set method is called
+         * @event Database#set
+         * @param {string|number|Object} data
+         */
+        this.emit('set', data);
+
+        return data;
     }
 
     /**
@@ -231,7 +271,7 @@ module.exports = Database;</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Feb 25 2019 17:54:16 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Feb 25 2019 20:52:12 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

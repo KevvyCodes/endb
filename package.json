@@ -5,6 +5,7 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build:docs",
     "build:docs": "jsdoc -c .jsdoc.json"
   },
   "dependencies": {
@@ -15,13 +16,16 @@
   },
   "author": "chroventer <chroventer@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/chroventer/endb#readme",
+  "homepage": "https://endb.js.org",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chroventer/endb.git"
   },
   "bugs": {
     "url": "https://github.com/chroventer/endb/issues"
+  },
+  "engines": {
+    "node": ">=10.0.0"
   },
   "keywords": [
     "database",
