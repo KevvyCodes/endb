@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>Database.js - Endb</title>
+    
+    <meta name="description" content="Enhanced Database" />
+    
+    
+    
+    <meta property="og:title" content="Endb"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" content=""/>
+    <meta property="og:site_name" content="endb"/>
+    <meta property="og:url" content="endb.js.org"/>
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav class="wrap">
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" target="_blank" class="menu-item" id="website_link" >Project Website</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm_link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#check">check</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li><li data-type='method' style='display: none;'><a href="Database.html#validateOptions">validateOptions</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">Database.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict';
+
+const SQLite = require('better-sqlite3');
+
+/**
+ * @class The Database
+ */
+class Database {
+    constructor(options = {}) {
+
+        /**
+         * The name of the database
+         * @type {string}
+         */
+        this.name = options.name || 'endb';
+
+        /**
+         * Whether or not, use the memory for database
+         * @type {boolean}
+         */
+        this.memory = Boolean(options.memory) || false;
+
+        /**
+         * The timeout for the database
+         * @type {number}
+         */
+        this.timeout = typeof options.timeout === 'number' ? options.timeout : 5000;
+
+        /**
+         * The SQLite connection of the database
+         * @type {SQLite}
+         */
+        this.db = new SQLite('database.sqlite', {
+            memory: this.memory,
+            timeout: this.timeout
+        });
+
+        this.validateOptions(options);
+    }
+
+    /**
+     * Gets the number of rows in the database
+     * @returns {number}
+     */
+    get count() {
+        const data = this.db.prepare(`SELECT count(*) FROM '${this.name}'`).get();
+        return data['count(*)'];
+    }
+
+    /**
+     * Gets all the indexes (keys) from the database
+     * @returns {Array&lt;string>}
+     */
+    get indexes() {
+        const rows = this.db.prepare(`SELECT key FROM '${this.name}'`).all();
+        return rows.map((row) => row.key);
+    }
+
+    /**
+     * Creates a backup of the database
+     * @param {string} name
+     */
+    backup(name = `backup-${Date.now()}`) {
+        if (name &amp;&amp; typeof name !== 'string') throw new TypeError('Name must be a string');
+        return this.db.backup(`${name}.sqlite`);
+    }
+
+    /**
+     * Checks if the table exists in the database
+     * @returns {*}
+     */
+    check() {
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS ${this.name} (key TEXT PRIMARY KEY, value TEXT)`).run();
+    }
+
+    /**
+     * Deletes a key from the database
+     * @param {string|number} key
+     * @returns {boolean}
+     */
+    delete(key) {
+        this.check();
+        this.db.prepare(`DELETE FROM ${this.name} WHERE key = '${key}'`).run();
+        return true;
+    }
+
+    /**
+     * Deletes all the keys from the database
+     * @returns {boolean}
+     */
+    deleteAll() {
+        this.check();
+        this.db.prepare(`DELETE FROM ${this.name};`).run();
+        return true;
+    }
+
+    /**
+     * Gets the specified key from the database, if exists
+     * @param {string|number} key
+     * @returns {string|number|Object}
+     */
+    get(key) {
+        this.check();
+        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!data) return null;
+        try {
+            data.value = JSON.parse(data.value);
+        } catch (err) {
+            data.value;
+        }
+        return data.value;
+    }
+
+    /**
+     * Gets all the keys and values from the database
+     * @returns {Array&lt;Object>}
+     */
+    getAll() {
+        this.check();
+        const rows = this.db.prepare(`SELECT * FROM ${this.name} WHERE key IS NOT NULL`).all();
+        return rows;
+    }
+
+    /**
+     * Whether or not, specified key exists
+     * @param {string|number} key
+     * @returns {boolean}
+     */
+    has(key) {
+        this.check();
+        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        return data ? true : false;
+    }
+
+    /**
+     * Sets a key and value to the database
+     * @param {string|number} key
+     * @param {string|number|Object} value
+     * @returns {Object}
+     */
+    set(key, value) {
+        this.check();
+        if (!key || !value) throw new TypeError('No key and value supplied');
+        value = typeof value === 'object' ? JSON.stringify(value) : value;
+        this.db.prepare(`INSERT INTO ${this.name} (key,value) VALUES (?,?)`).run(key, value);
+        return {
+            key,
+            value
+        };
+    }
+
+    /**
+     * Validates the database options
+     * @param {DatabaseOptions} options
+     */
+    validateOptions(options) {
+        if (options.name &amp;&amp; typeof options.name !== 'string') {
+            throw new TypeError('Database name must be a string');
+        }
+        if (options.memory &amp;&amp; typeof options.memory !== 'boolean') {
+            throw new TypeError('The option "memory" must be a boolean');
+        }
+    }
+}
+
+module.exports = Database;</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Feb 25 2019 17:54:16 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/jquery-3.1.1.min.js"></script>
+
+<script src="scripts/search.js"></script>
+
+
+<script src="scripts/collapse.js"></script>
+
+
+
+</body>
+</html>
