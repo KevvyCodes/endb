@@ -30,11 +30,10 @@
 
 ## Example
 ```js
-const { Database } = require('endb');
-const db = new Database();
+const Endb = require('endb');
+const db = new Endb.Database();
 
 db.set('account_1234567890', 'password12345'); // -> { key: 'account_1234567890', value: 'password12345' }
-
 db.set('account_123456789', {
   id: 123456789,
   password: 'password1234567890',
@@ -54,4 +53,4 @@ db.getAll() // -> // -> [ { key: 'account_123456789', value: '{"id":123456789,"p
 * [Documentation](https://endb.js.org)
 * [GitHub](https://github.com/chroventer/endb)
 * [NPM](https://npmjs.com/package/endb)
-
+* [Discord](https://discord.gg/3yXx8CN)

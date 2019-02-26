@@ -37,7 +37,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" target="_blank" class="menu-item" id="website_link" >Project Website</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm_link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li><li data-type='method' style='display: none;'><a href="Database.html#validateOptions">validateOptions</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" target="_blank" class="menu-item" id="website_link" >Project Website</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm_link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#close">close</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
 </nav>
 
 <div id="main">
@@ -58,7 +58,7 @@ const SQLite = require('better-sqlite3');
 const EventEmitter = require('events').EventEmitter;
 
 /**
- * @class The Database
+ * The database
  * @extends EventEmitter
  */
 class Database extends EventEmitter {
@@ -75,7 +75,7 @@ class Database extends EventEmitter {
          * Whether or not, use the memory for database
          * @type {boolean}
          */
-        this.memory = Boolean(options.memory) || false;
+        this.memory = typeof options.memory === 'boolean' ? options.memory : false;
 
         /**
          * The timeout for the database
@@ -92,7 +92,7 @@ class Database extends EventEmitter {
             timeout: this.timeout,
         });
 
-        this.validateOptions(options);
+        this._validateOptions(options);
     }
 
     /**
@@ -110,7 +110,7 @@ class Database extends EventEmitter {
      */
     get indexes() {
         const rows = this.db.prepare(`SELECT key FROM '${this.name}'`).all();
-        return rows.map(row => row.key);
+        return rows.map((row) => row.key);
     }
 
     /**
@@ -132,12 +132,20 @@ class Database extends EventEmitter {
     }
 
     /**
+     * Closes the database
+     * @returns {*}
+     */
+    close() {
+        return this.db.close();
+    }
+
+    /**
      * Deletes a key from the database
      * @param {string|number} key
      * @returns {boolean}
      */
     delete(key) {
-        this.check();
+        this._check();
         this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?)`).run(key);
         return true;
     }
@@ -147,7 +155,7 @@ class Database extends EventEmitter {
      * @returns {boolean}
      */
     deleteAll() {
-        this.check();
+        this._check();
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!data) return false;
         this.db.prepare(`DELETE FROM ${this.name}`).run();
@@ -155,7 +163,7 @@ class Database extends EventEmitter {
     }
 
     find(prefix) {
-        this.check();
+        this._check();
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
         const row = this.row2Obj(data);
         return row;
@@ -167,7 +175,7 @@ class Database extends EventEmitter {
      * @returns {string|number|Object}
      */
     get(key) {
-        this.check();
+        this._check();
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!data) return null;
         try {
@@ -191,7 +199,7 @@ class Database extends EventEmitter {
      * @returns {Array&lt;Object>}
      */
     getAll() {
-        this.check();
+        this._check();
         const rows = this.db.prepare(`SELECT * FROM ${this.name} WHERE key IS NOT NULL`).all();
         return rows;
     }
@@ -202,9 +210,9 @@ class Database extends EventEmitter {
      * @returns {boolean}
      */
     has(key) {
-        this.check();
+        this._check();
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        return !!data;
+        return data ? true : false;
     }
 
     row2Obj(rows) {
@@ -224,13 +232,13 @@ class Database extends EventEmitter {
      * @returns {Object}
      */
     set(key, value) {
-        this.check();
+        this._check();
         if (!key || !value) throw new TypeError('No key and value supplied');
         value = typeof value === 'object' ? JSON.stringify(value) : value;
-        this.db.prepare(`INSERT INTO ${this.name} (key,value) VALUES (?,?)`).run(key, value);
+        this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, value);
         const data = {
             key,
-            value,
+            value
         };
 
         /**
@@ -246,8 +254,9 @@ class Database extends EventEmitter {
     /**
      * Validates the database options
      * @param {DatabaseOptions} options
+     * @private
      */
-    validateOptions(options) {
+    _validateOptions(options) {
         if (options.name &amp;&amp; typeof options.name !== 'string') {
             throw new TypeError('Database name must be a string');
         }
@@ -271,7 +280,7 @@ module.exports = Database;</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Feb 25 2019 20:52:12 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Feb 26 2019 14:45:28 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
