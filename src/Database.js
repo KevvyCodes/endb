@@ -60,6 +60,43 @@ class Database extends EventEmitter {
     }
 
     /**
+     * Adds a value to a key
+     * @param {string|number} key
+     * @param {string|number|Object} value
+     * @returns {number}
+     */
+    add(key, value) {
+        this._check();
+        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!selected) {
+            this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
+            selected = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        }
+        if (selected.value === '{}') {
+            selected.value = 0;
+        } else {
+            selected.value = JSON.parse(selected.value);
+        }
+        try {
+            selected.value = JSON.parse(selected);
+        } catch (err) {}
+        if (isNaN(selected.value)) throw new TypeError('Value must be a number');
+        value = parseInt(selected.value, 10) - parseInt(value, 10);
+        value = JSON.stringify(value);
+        this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(value, key);
+        let updated = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key).value;
+        if (updated === '{}') {
+            return null;
+        } else {
+            updated = JSON.parse(updated);
+            try {
+                updated = JSON.parse(updated);
+            } catch (err) {}
+            return updated;
+        }
+    }
+
+    /**
      * Creates a backup of the database
      * @param {string} name
      */
@@ -187,7 +224,7 @@ class Database extends EventEmitter {
         }
         selected = JSON.parse(selected.value);
         try {
-            selected = JSON.parse(fetched);
+            selected = JSON.parse(selected);
         } catch (err) {}
         value = typeof value === 'object' ? JSON.stringify(value) : value;
         this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(key, value);
@@ -209,6 +246,37 @@ class Database extends EventEmitter {
         this.emit('set', updated);
 
         return updated;
+    }
+
+    subtract(key, value) {
+        this._check();
+        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!selected) {
+            this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
+            selected = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        }
+        if (selected.value === '{}') {
+            selected.value = 0;
+        } else {
+            selected.value = JSON.parse(selected.value);
+        }
+        try {
+            selected.value = JSON.parse(selected);
+        } catch (err) {}
+        if (isNaN(selected.value)) throw new TypeError('Value must be a number');
+        value = parseInt(selected.value, 10) - parseInt(value, 10);
+        value = JSON.stringify(value);
+        this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(value, key);
+        let updated = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key).value;
+        if (updated === '{}') {
+            return null;
+        } else {
+            updated = JSON.parse(updated);
+            try {
+                updated = JSON.parse(updated);
+            } catch (err) {}
+            return updated;
+        }
     }
 
     /**
