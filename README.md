@@ -35,9 +35,19 @@ const db = new Database();
 
 db.set('account_1234567890', 'password12345'); // -> { key: 'account_1234567890', value: 'password12345' }
 
+db.set('account_123456789', {
+  id: 123456789,
+  password: 'password1234567890',
+  checked: true
+}); // -> { key: 'account_123456789', value: '{"id":123456789,"password":"password1234567890","checked":true}' }
+
 db.get('account_1234567890'); // -> password12345
 
 db.has('account_1234567890'); // -> true
+
+db.delete('account_1234567890'); // -> true
+
+db.getAll() // -> // -> [ { key: 'account_123456789', value: '{"id":123456789,"password":"password1234567890","checked":true}' } ]
 ```
 
 ## Links

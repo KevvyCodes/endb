@@ -173,11 +173,8 @@ class Database extends EventEmitter {
         this._check();
         if (!key || !value) throw new TypeError('No key and value supplied');
         value = typeof value === 'object' ? JSON.stringify(value) : value;
-        this.db.prepare(`INSERT INTO ${this.name} (key,value) VALUES (?,?)`).run(key, value);
-        const data = {
-            key,
-            value,
-        };
+        this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, value);
+        const data = { key, value };
 
         /**
          * Emitted whenever set method is called
