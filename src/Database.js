@@ -180,21 +180,35 @@ class Database extends EventEmitter {
     set(key, value) {
         this._check();
         if (!key || !value) throw new TypeError('No key and value supplied');
+        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!selected) {
+            this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
+            selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        }
+        selected = JSON.parse(selected.value);
+        try {
+            selected = JSON.parse(fetched);
+        } catch (err) {}
         value = typeof value === 'object' ? JSON.stringify(value) : value;
-        this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, value);
-        const data = {
-            key,
-            value
-        };
+        this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(key, value);
+        let updated = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key).value;
+        if (updated === '{}') {
+            return null;
+        } else {
+            updated = JSON.parse(updated);
+            try {
+                updated = JSON.parse(updated);
+            } catch (err) {}
+        }
 
         /**
          * Emitted whenever set method is called
          * @event Database#set
          * @param {string|number|Object} data
          */
-        this.emit('set', data);
+        this.emit('set', updated);
 
-        return data;
+        return updated;
     }
 
     /**
