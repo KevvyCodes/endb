@@ -4,7 +4,7 @@ const SQLite = require('better-sqlite3');
 const EventEmitter = require('events').EventEmitter;
 
 /**
- * @class The Database
+ * The database
  * @extends EventEmitter
  */
 class Database extends EventEmitter {
@@ -21,7 +21,7 @@ class Database extends EventEmitter {
          * Whether or not, use the memory for database
          * @type {boolean}
          */
-        this.memory = Boolean(options.memory) || false;
+        this.memory = typeof options.memory === 'boolean' ? options.memory : false;
 
         /**
          * The timeout for the database
@@ -75,6 +75,14 @@ class Database extends EventEmitter {
      */
     _check() {
         this.db.prepare(`CREATE TABLE IF NOT EXISTS ${this.name} (key TEXT PRIMARY KEY, value TEXT)`).run();
+    }
+
+    /**
+     * Closes the database
+     * @returns {*}
+     */
+    close() {
+        return this.db.close();
     }
 
     /**
@@ -174,7 +182,10 @@ class Database extends EventEmitter {
         if (!key || !value) throw new TypeError('No key and value supplied');
         value = typeof value === 'object' ? JSON.stringify(value) : value;
         this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, value);
-        const data = { key, value };
+        const data = {
+            key,
+            value
+        };
 
         /**
          * Emitted whenever set method is called
