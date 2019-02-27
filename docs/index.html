@@ -37,7 +37,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" target="_blank" class="menu-item" id="website_link" >Project Website</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm_link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#close">close</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" class="menu-item" id="website-link" >Home</a></h2><h2><a href="https://github.com/chroventer/endb" target="_blank" class="menu-item" id="github-link" >GitHub</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm-link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#add">add</a></li><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#close">close</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
 </nav>
 
 <div id="main">
@@ -68,18 +68,29 @@
 
     <section class="readme">
         <article><div align="center">
-  <h1>Endb – Enhanced Database</h1>
+  <h1>Endb</h1>
   <p>
     <a href="https://discord.gg/3yXx8CN"><img src="https://discordapp.com/api/guilds/519513445721178133/embed.png" alt="discord-server" /></a>
     <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/v/endb.svg?maxAge=3600" alt="npm-version" /></a>
     <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/dt/endb.svg?maxAge=3600" alt="npm-downloads" /></a>
-    <a href="https://david-dm.org/chroventer/endb"><img src="https://img.shields.io/david/chroventer/endb.svg?maxAge=3600" alt="dependencies" /></a>
+    <a href="https://david-dm.org/chroventer/endb"><img src="https://img.shields.io/david/chroventer/endb.svg?maxAge=3600"
+        alt="dependencies" /></a>
+    <a href="https://github.com/chroventer/endb/stargazers"><img src="https://img.shields.io/github/stars/chroventer/endb.svg?style=social&label=Star&maxAge=2592000"></a>
   </p>
   <p>
     <a href="https://nodei.co/npm/endb/"><img src="https://nodei.co/npm/endb.png?downloads=true&stars=true" alt="npm-info" /></a>
   </p>
 </div>
 
+<h2>About</h2><p>Endb – Enhanced Database, is a simplified and powerful <a href="https://nodejs.org">Node.js</a> module for storing, accessing, and
+managing database.</p>
+<ul>
+<li>Object-oriented</li>
+<li>Persistent storage</li>
+<li>Configurable</li>
+<li>Performant</li>
+<li>Beginner-friendly</li>
+</ul>
 <h2>Installation</h2><p><strong>Node.js 8.0.0 or newer is required.</strong></p>
 <p><strong>Windows</strong></p>
 <ul>
@@ -103,9 +114,9 @@ const db = new Endb.Database();
 
 db.set('account_1234567890', 'password12345'); // -> { key: 'account_1234567890', value: 'password12345' }
 db.set('account_123456789', {
-  id: 123456789,
-  password: 'password1234567890',
-  checked: true
+id: 123456789,
+password: 'password1234567890',
+checked: true
 }); // -> { key: 'account_123456789', value: '{&quot;id&quot;:123456789,&quot;password&quot;:&quot;password1234567890&quot;,&quot;checked&quot;:true}' }
 
 db.get('account_1234567890'); // -> password12345
@@ -114,7 +125,8 @@ db.has('account_1234567890'); // -> true
 
 db.delete('account_1234567890'); // -> true
 
-db.getAll() // -> // -> [ { key: 'account_123456789', value: '{&quot;id&quot;:123456789,&quot;password&quot;:&quot;password1234567890&quot;,&quot;checked&quot;:true}' } ]</code></pre><h2>Links</h2><ul>
+db.getAll() // -> // -> [ { key: 'account_123456789', value:
+'{&quot;id&quot;:123456789,&quot;password&quot;:&quot;password1234567890&quot;,&quot;checked&quot;:true}' } ]</code></pre><h2>Links</h2><ul>
 <li><a href="https://endb.js.org">Documentation</a></li>
 <li><a href="https://github.com/chroventer/endb">GitHub</a></li>
 <li><a href="https://npmjs.com/package/endb">NPM</a></li>
@@ -134,7 +146,7 @@ db.getAll() // -> // -> [ { key: 'account_123456789', value: '{&quot;id&quot;:12
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Feb 26 2019 14:45:28 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Feb 27 2019 12:01:52 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
