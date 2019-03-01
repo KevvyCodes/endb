@@ -62,11 +62,12 @@ class Database extends EventEmitter {
     /**
      * Adds a value to a key
      * @param {string|number} key
-     * @param {string|number|Object} value
+     * @param {number} value
      * @returns {number}
      */
     add(key, value) {
         this._check();
+        if (typeof value !== 'number') throw new TypeError('Value must be a number');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
@@ -99,6 +100,7 @@ class Database extends EventEmitter {
     /**
      * Creates a backup of the database
      * @param {string} name
+     * @returns {*}
      */
     backup(name = `backup-${Date.now()}`) {
         if (name && typeof name !== 'string') throw new TypeError('Name must be a string');
@@ -145,6 +147,11 @@ class Database extends EventEmitter {
         return true;
     }
 
+    /**
+     * Finds a key matching the prefix supplied
+     * @param {string|number} prefix
+     * @returns {object}
+     */
     find(prefix) {
         this._check();
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
@@ -248,8 +255,15 @@ class Database extends EventEmitter {
         return updated;
     }
 
+    /**
+     * Subtracts a value from the key
+     * @param {string|number} key
+     * @param {number} value
+     * @returns {number}
+     */
     subtract(key, value) {
         this._check();
+        if (typeof value !== 'number') throw new TypeError('Value must be a number');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');

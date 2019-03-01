@@ -3,6 +3,7 @@
   "version": "0.0.4",
   "description": "Enhanced Database",
   "main": "./src/index.js",
+  "types": "./typings/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build:docs",
