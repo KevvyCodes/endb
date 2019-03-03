@@ -13,7 +13,9 @@
     "better-sqlite3": "^5.4.0"
   },
   "devDependencies": {
-    "jsdoc": "^3.5.5"
+    "@types/node": "^11.10.4",
+    "jsdoc": "^3.5.5",
+    "typescript": "^3.3.3333"
   },
   "author": "chroventer <chroventer@gmail.com>",
   "license": "MIT",

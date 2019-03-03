@@ -26,7 +26,7 @@ managing database.
 
 ## Installation
 
-**Node.js 8.0.0 or newer is required.**
+**Node.js 10.0.0 or newer is required.**
 
 **Windows**
 
