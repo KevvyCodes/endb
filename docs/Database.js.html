@@ -37,7 +37,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://endb.js.org" class="menu-item" id="website-link" >Home</a></h2><h2><a href="https://github.com/chroventer/endb" target="_blank" class="menu-item" id="github-link" >GitHub</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm-link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#add">add</a></li><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#close">close</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/chroventer/endb" target="_blank" class="menu-item" id="github-link" >GitHub</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm-link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#add">add</a></li><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#close">close</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#find">find</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li><li data-type='method' style='display: none;'><a href="Database.html#subtract">subtract</a></li></ul></li></ul><h3>Events</h3><ul><li><a href="Database.html#event:get">get</a></li><li><a href="Database.html#event:set">set</a></li></ul>
 </nav>
 
 <div id="main">
@@ -116,11 +116,12 @@ class Database extends EventEmitter {
     /**
      * Adds a value to a key
      * @param {string|number} key
-     * @param {string|number|Object} value
+     * @param {number} value
      * @returns {number}
      */
     add(key, value) {
         this._check();
+        if (typeof value !== 'number') throw new TypeError('Value must be a number');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
@@ -153,6 +154,7 @@ class Database extends EventEmitter {
     /**
      * Creates a backup of the database
      * @param {string} name
+     * @returns {*}
      */
     backup(name = `backup-${Date.now()}`) {
         if (name &amp;&amp; typeof name !== 'string') throw new TypeError('Name must be a string');
@@ -199,10 +201,15 @@ class Database extends EventEmitter {
         return true;
     }
 
+    /**
+     * Finds a key matching the prefix supplied
+     * @param {string|number} prefix
+     * @returns {object}
+     */
     find(prefix) {
         this._check();
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
-        const row = this.row2Obj(data);
+        const row = this._row2Obj(data);
         return row;
     }
 
@@ -252,7 +259,7 @@ class Database extends EventEmitter {
         return data ? true : false;
     }
 
-    row2Obj(rows) {
+    _row2Obj(rows) {
         const _row = {};
         for (const i in rows) {
             const row = rows[i];
@@ -302,8 +309,15 @@ class Database extends EventEmitter {
         return updated;
     }
 
+    /**
+     * Subtracts a value from the key
+     * @param {string|number} key
+     * @param {number} value
+     * @returns {number}
+     */
     subtract(key, value) {
         this._check();
+        if (typeof value !== 'number') throw new TypeError('Value must be a number');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
@@ -362,7 +376,7 @@ module.exports = Database;</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Feb 27 2019 12:01:52 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Mar 04 2019 17:06:33 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

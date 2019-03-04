@@ -1,3 +1,8 @@
+// Type definitions for endb
+// Project: https://github.com/chroventer/endb
+// Definitions by: chroventer <https://github.com/chroventer>
+// License: MIT
+
 declare module 'endb' {
     export const version: string;
     export class Database {
@@ -17,7 +22,7 @@ declare module 'endb' {
         public get(key: string | number): string | number | object;
         public getAll(): object[];
         public has(key: string | number): boolean;
-        public row2Obj(rows: Array<any>): void;
+        private _row2Obj(rows: Array<any>): void;
         public set(key: string | number, value: string | number | object): object;
         public subtract(key: string | number, value: number): number;
         private _validateOptions(options: object): void;

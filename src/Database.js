@@ -155,7 +155,7 @@ class Database extends EventEmitter {
     find(prefix) {
         this._check();
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
-        const row = this.row2Obj(data);
+        const row = this._row2Obj(data);
         return row;
     }
 
@@ -205,7 +205,7 @@ class Database extends EventEmitter {
         return data ? true : false;
     }
 
-    row2Obj(rows) {
+    _row2Obj(rows) {
         const _row = {};
         for (const i in rows) {
             const row = rows[i];
