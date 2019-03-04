@@ -24,7 +24,7 @@ class Database extends EventEmitter {
          * The data directory for the database
          * @type {string}
          */
-        this.dataDir = typeof options.dataDir === 'string' ? options.dataDir : '.';
+        this.path = typeof options.path === 'string' ? options.path : '.';
 
         /**
          * Whether or not, use the memory for database
@@ -38,13 +38,13 @@ class Database extends EventEmitter {
          */
         this.timeout = typeof options.timeout === 'number' ? options.timeout : 5000;
 
-        if (!fs.existsSync(this.dataDir)) fs.mkdirSync(this.dataDir);
+        if (!fs.existsSync(this.path)) fs.mkdirSync(this.path);
 
         /**
          * The SQLite connection of the database
          * @type {*}
          */
-        this.db = new SQLite(`${path.resolve(process.cwd(), this.dataDir)}${path.sep}endb.sqlite`, {
+        this.db = new SQLite(`${path.resolve(process.cwd(), this.path)}${path.sep}endb.sqlite`, {
             memory: this.memory,
             timeout: this.timeout,
         });

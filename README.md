@@ -28,20 +28,20 @@ managing database.
 
 **Node.js 10.0.0 or newer is required.**
 
-**Windows**
+### Windows
 
 - Run `npm -g --add-python-to-path install windows-build-tools node-gyp` in CMD/Powershell as administrator
 - Restart CMD/Powershell
 - Run `npm i endb`
 
-**Mac**
+### Mac
 
 - Install XCode
 - Run `npm i -g node-gyp` in Terminal
 - Run `node-gyp --python /path/to/python2.7` (skip this step if you didn't install python 3.x)
 - Run `npm i endb`
 
-**Linux**
+### Linux
 
 - Run `npm i endb` in Terminal
 
@@ -49,7 +49,10 @@ managing database.
 
 ```js
 const Endb = require('endb');
-const db = new Endb.Database();
+const db = new Endb.Database({
+  name: 'test' // optional
+  path: './data' // optional
+});
 
 db.set('account_1234567890', 'password12345'); // -> { key: 'account_1234567890', value: 'password12345' }
 db.set('account_123456789', {

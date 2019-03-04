@@ -8,7 +8,7 @@ declare module 'endb' {
     export class Database {
         constructor(options?: EndbOptions);
         public name: string;
-        public dataDir: string;
+        public path: string;
         public memory: boolean;
         public timeout: number;
         public db: object;
@@ -31,7 +31,7 @@ declare module 'endb' {
 
     type EndbOptions = {
         name: string;
-        dataDir: string;
+        path: string;
         memory: number;
         timeout: number;
     }
