@@ -1,7 +1,10 @@
 'use strict';
 
-const SQLite = require('better-sqlite3');
+const Error = require('./Error');
 const EventEmitter = require('events').EventEmitter;
+const fs = require('fs');
+const path = require('path');
+const SQLite = require('better-sqlite3');
 
 /**
  * The database
@@ -15,7 +18,13 @@ class Database extends EventEmitter {
          * The name of the database
          * @type {string}
          */
-        this.name = options.name || 'endb';
+        this.name = typeof options.name === 'string' ? options.name : 'endb';
+
+        /**
+         * The data directory for the database
+         * @type {string}
+         */
+        this.dataDir = typeof options.dataDir === 'string' ? options.dataDir : '.';
 
         /**
          * Whether or not, use the memory for database
@@ -29,16 +38,16 @@ class Database extends EventEmitter {
          */
         this.timeout = typeof options.timeout === 'number' ? options.timeout : 5000;
 
+        if (!fs.existsSync(this.dataDir)) fs.mkdirSync(this.dataDir);
+
         /**
          * The SQLite connection of the database
-         * @type {SQLite}
+         * @type {*}
          */
-        this.db = new SQLite('database.sqlite', {
+        this.db = new SQLite(`${path.resolve(process.cwd(), this.dataDir)}${path.sep}endb.sqlite`, {
             memory: this.memory,
             timeout: this.timeout,
         });
-
-        this._validateOptions(options);
     }
 
     /**
@@ -67,7 +76,8 @@ class Database extends EventEmitter {
      */
     add(key, value) {
         this._check();
-        if (typeof value !== 'number') throw new TypeError('Value must be a number');
+        if (typeof key !== 'string' || typeof key !== 'number') throw new Error('Key is not specified');
+        if (typeof value !== 'number') throw new Error('Value is not specified');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
@@ -81,7 +91,7 @@ class Database extends EventEmitter {
         try {
             selected.value = JSON.parse(selected);
         } catch (err) {}
-        if (isNaN(selected.value)) throw new TypeError('Value must be a number');
+        if (isNaN(selected.value)) throw new Error('Value is not specified');
         value = parseInt(selected.value, 10) - parseInt(value, 10);
         value = JSON.stringify(value);
         this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(value, key);
@@ -100,16 +110,16 @@ class Database extends EventEmitter {
     /**
      * Creates a backup of the database
      * @param {string} name
-     * @returns {*}
+     * @returns {void}
      */
     backup(name = `backup-${Date.now()}`) {
-        if (name && typeof name !== 'string') throw new TypeError('Name must be a string');
-        return this.db.backup(`${name}.sqlite`);
+        if (name && typeof name !== 'string') throw new Error('Name is not specified');
+        this.db.backup(`${name}.sqlite`);
+        return undefined;
     }
 
     /**
      * Checks if the table exists in the database
-     * @returns {*}
      * @private
      */
     _check() {
@@ -131,6 +141,7 @@ class Database extends EventEmitter {
      */
     delete(key) {
         this._check();
+        if (!key) return false;
         this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?)`).run(key);
         return true;
     }
@@ -154,7 +165,9 @@ class Database extends EventEmitter {
      */
     find(prefix) {
         this._check();
+        if (!prefix) throw new Error('Prefix is not specified');
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
+        if (!data) return null;
         const row = this._row2Obj(data);
         return row;
     }
@@ -166,6 +179,7 @@ class Database extends EventEmitter {
      */
     get(key) {
         this._check();
+        if (!key) throw new Error('Key is not specified');
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!data) return null;
         try {
@@ -190,8 +204,9 @@ class Database extends EventEmitter {
      */
     getAll() {
         this._check();
-        const rows = this.db.prepare(`SELECT * FROM ${this.name} WHERE key IS NOT NULL`).all();
-        return rows;
+        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key IS NOT NULL`).all();
+        if (!data) return null;
+        return data;
     }
 
     /**
@@ -223,7 +238,7 @@ class Database extends EventEmitter {
      */
     set(key, value) {
         this._check();
-        if (!key || !value) throw new TypeError('No key and value supplied');
+        if (!key || !value) throw new Error('Key and value are not specified');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
@@ -263,7 +278,7 @@ class Database extends EventEmitter {
      */
     subtract(key, value) {
         this._check();
-        if (typeof value !== 'number') throw new TypeError('Value must be a number');
+        if (typeof value !== 'number') throw new Error('Value is not specified');
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
             this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
@@ -277,7 +292,7 @@ class Database extends EventEmitter {
         try {
             selected.value = JSON.parse(selected);
         } catch (err) {}
-        if (isNaN(selected.value)) throw new TypeError('Value must be a number');
+        if (isNaN(selected.value)) throw new Error('Value is not specified');
         value = parseInt(selected.value, 10) - parseInt(value, 10);
         value = JSON.stringify(value);
         this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(value, key);
@@ -290,20 +305,6 @@ class Database extends EventEmitter {
                 updated = JSON.parse(updated);
             } catch (err) {}
             return updated;
-        }
-    }
-
-    /**
-     * Validates the database options
-     * @param {DatabaseOptions} options
-     * @private
-     */
-    _validateOptions(options) {
-        if (options.name && typeof options.name !== 'string') {
-            throw new TypeError('Database name must be a string');
-        }
-        if (options.memory && typeof options.memory !== 'boolean') {
-            throw new TypeError('The option "memory" must be a boolean');
         }
     }
 }

@@ -6,8 +6,9 @@
 declare module 'endb' {
     export const version: string;
     export class Database {
-        constructor(options?: object);
+        constructor(options?: EndbOptions);
         public name: string;
+        public dataDir: string;
         public memory: boolean;
         public timeout: number;
         public db: object;
@@ -25,6 +26,13 @@ declare module 'endb' {
         private _row2Obj(rows: Array<any>): void;
         public set(key: string | number, value: string | number | object): object;
         public subtract(key: string | number, value: number): number;
-        private _validateOptions(options: object): void;
+        private _validateOptions(options: EndbOptions): void;
+    }
+
+    type EndbOptions = {
+        name: string;
+        dataDir: string;
+        memory: number;
+        timeout: number;
     }
 }
