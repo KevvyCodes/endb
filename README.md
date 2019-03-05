@@ -1,17 +1,16 @@
-<div align="center">
-  <h1>Endb</h1>
-  <p>
-    <a href="https://discord.gg/3yXx8CN"><img src="https://discordapp.com/api/guilds/519513445721178133/embed.png" alt="discord-server" /></a>
-    <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/v/endb.svg?maxAge=3600" alt="npm-version" /></a>
-    <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/dt/endb.svg?maxAge=3600" alt="npm-downloads" /></a>
-    <a href="https://david-dm.org/chroventer/endb"><img src="https://img.shields.io/david/chroventer/endb.svg?maxAge=3600"
-        alt="dependencies" /></a>
-    <a href="https://github.com/chroventer/endb/stargazers"><img src="https://img.shields.io/github/stars/chroventer/endb.svg?style=social&label=Star&maxAge=2592000"></a>
-  </p>
-  <p>
-    <a href="https://nodei.co/npm/endb/"><img src="https://nodei.co/npm/endb.png?downloads=true&stars=true" alt="npm-info" /></a>
-  </p>
-</div>
+# Endb
+
+<p>
+  <a href="https://discord.gg/3yXx8CN"><img src="https://discordapp.com/api/guilds/519513445721178133/embed.png" alt="discord-server" /></a>
+  <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/v/endb.svg?maxAge=3600" alt="npm-version" /></a>
+  <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/dt/endb.svg?maxAge=3600" alt="npm-downloads" /></a>
+  <a href="https://david-dm.org/chroventer/endb"><img src="https://img.shields.io/david/chroventer/endb.svg?maxAge=3600"
+      alt="dependencies" /></a>
+  <a href="https://github.com/chroventer/endb/stargazers"><img src="https://img.shields.io/github/stars/chroventer/endb.svg?style=social&label=Star&maxAge=2592000"></a>
+</p>
+<p>
+  <a href="https://nodei.co/npm/endb/"><img src="https://nodei.co/npm/endb.png?downloads=true&stars=true" alt="npm-info" /></a>
+</p>
 
 ## About
 
@@ -50,8 +49,8 @@ managing database.
 ```js
 const Endb = require('endb');
 const db = new Endb.Database({
-  name: 'test' // optional
-  path: './data' // optional
+name: 'test' // optional
+path: './data' // optional
 });
 
 db.set('account_1234567890', 'password12345'); // -> { key: 'account_1234567890', value: 'password12345' }
