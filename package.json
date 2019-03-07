@@ -18,16 +18,15 @@
   "devDependencies": {
     "@types/node": "^11.10.4",
     "docdash": "^1.0.3",
-    "jsdoc": "^3.5.5",
     "typescript": "^3.3.3333"
   },
   "homepage": "https://endb.js.org",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chroventer/endb.git"
+    "url": "git+https://github.com/endb/endb.git"
   },
   "bugs": {
-    "url": "https://github.com/chroventer/endb/issues"
+    "url": "https://github.com/endb/endb/issues"
   },
   "engines": {
     "node": ">=10.0.0"

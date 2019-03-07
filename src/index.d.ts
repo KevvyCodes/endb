@@ -1,5 +1,5 @@
 // Type definitions for endb
-// Project: https://github.com/chroventer/endb
+// Project: https://github.com/endb/endb
 // Definitions by: chroventer <https://github.com/chroventer>
 // License: MIT
 
@@ -7,11 +7,11 @@ declare module 'endb' {
     export const version: string;
     export class Database {
         constructor(options?: EndbOptions);
-        public name: string;
-        public path: string;
-        public memory: boolean;
-        public timeout: number;
-        public db: object;
+        public readonly name: string;
+        public readonly path: string;
+        public readonly memory: boolean;
+        public readonly timeout: number;
+        private db: object;
 
         public add(key: string | number, value: number): number;
         public backup(name: string): void;

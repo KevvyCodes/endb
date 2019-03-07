@@ -2,11 +2,11 @@
 
 <p>
   <a href="https://discord.gg/3yXx8CN"><img src="https://discordapp.com/api/guilds/519513445721178133/embed.png" alt="discord-server" /></a>
-  <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/v/endb.svg?maxAge=3600" alt="npm-version" /></a>
-  <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/dt/endb.svg?maxAge=3600" alt="npm-downloads" /></a>
-  <a href="https://david-dm.org/chroventer/endb"><img src="https://img.shields.io/david/chroventer/endb.svg?maxAge=3600"
+  <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/v/endb.svg" alt="npm-version" /></a>
+  <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/dt/endb.svg" alt="npm-downloads" /></a>
+  <a href="https://david-dm.org/endb/endb"><img src="https://img.shields.io/david/endb/endb.svg"
       alt="dependencies" /></a>
-  <a href="https://github.com/chroventer/endb/stargazers"><img src="https://img.shields.io/github/stars/chroventer/endb.svg?style=social&label=Star"></a>
+  <a href="https://github.com/endb/endb/stargazers"><img src="https://img.shields.io/github/stars/endb/endb.svg?style=social&label=Star"></a>
 </p>
 <p>
   <a href="https://nodei.co/npm/endb/"><img src="https://nodei.co/npm/endb.png?downloads=true&stars=true" alt="npm-info" /></a>
@@ -72,7 +72,7 @@ db.deleteAll(); // -> true
 
 ## Links
 
-- [Browse Documentation](https://endb.js.org) ([source](https://github.com/chroventer/endb/tree/master/docs))
+- [Browse Documentation](https://endb.js.org)
 - [Install using NPM](https://npmjs.com/package/endb)
-- [Star on GitHub](https://github.com/chroventer/endb)
+- [Star on GitHub](https://github.com/endb/endb)
 - [Join Discord](https://discord.gg/3yXx8CN)
