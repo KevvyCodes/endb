@@ -1,18 +1,16 @@
 'use strict';
 
 const Error = require('./Error');
-const EventEmitter = require('events').EventEmitter;
 const fs = require('fs');
 const path = require('path');
 const SQLite = require('better-sqlite3');
+const _ = require('lodash');
 
 /**
  * The database
- * @extends EventEmitter
  */
-class Database extends EventEmitter {
+class Database {
     constructor(options = {}) {
-        super(options);
 
         /**
          * The name of the database
@@ -24,7 +22,7 @@ class Database extends EventEmitter {
          * The data directory for the database
          * @type {string}
          */
-        this.path = typeof options.path === 'string' ? options.path : '.';
+        this.path = typeof options.path === 'string' ? path.resolve(process.cwd(), options.path) : path.resolve(process.cwd(), './');
 
         /**
          * Whether or not, use the memory for database
@@ -44,7 +42,7 @@ class Database extends EventEmitter {
          * The SQLite connection of the database
          * @type {*}
          */
-        this.db = new SQLite(`${path.resolve(process.cwd(), this.path)}${path.sep}endb.sqlite`, {
+        this.db = new SQLite(`${this.path}${path.sep}endb.sqlite`, {
             memory: this.memory,
             timeout: this.timeout,
         });
@@ -73,53 +71,44 @@ class Database extends EventEmitter {
      * @param {string|number} key
      * @param {number} value
      * @returns {number}
+     * @example
+     * Database.add('key', 1);
      */
     add(key, value) {
         this._check();
-        if (typeof key !== 'string' || typeof key !== 'number') throw new Error('Key is not specified');
-        if (typeof value !== 'number') throw new Error('Value is not specified');
+        if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
+            throw new Error('Key must be string or number', 'EndbTypeError');
+        }
+        if (_.isNil(value) || _.isNaN(value)) {
+            throw new Error('Value must be a number', 'EndbTypeError');
+        }
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        if (!selected) {
-            this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
-            selected = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        let val;
+        if (selected) {
+            val = value;
+        } else if (!selected) {
+            val = 0;
         }
-        if (selected.value === '{}') {
-            selected.value = 0;
-        } else {
-            selected.value = JSON.parse(selected.value);
-        }
-        try {
-            selected.value = JSON.parse(selected);
-        } catch (err) {}
-        if (isNaN(selected.value)) throw new Error('Value is not specified');
-        value = parseInt(selected.value, 10) - parseInt(value, 10);
-        value = JSON.stringify(value);
-        this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(value, key);
-        let updated = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key).value;
-        if (updated === '{}') {
-            return null;
-        } else {
-            updated = JSON.parse(updated);
-            try {
-                updated = JSON.parse(updated);
-            } catch (err) {}
-            return updated;
-        }
+        this.set(key, _.toNumber(value) + _.toNumber(val));
+        return value;
     }
 
     /**
      * Creates a backup of the database
      * @param {string} name
      * @returns {void}
+     * @example
+     * Database.backup('mybackup');
      */
     backup(name = `backup-${Date.now()}`) {
-        if (name && typeof name !== 'string') throw new Error('Name is not specified');
+        if (name && typeof name !== 'string') throw new Error('Name is not specified', 'EndbParameterError');
         this.db.backup(`${name}.sqlite`);
         return undefined;
     }
 
     /**
      * Checks if the table exists in the database
+     * @returns {null}
      * @private
      */
     _check() {
@@ -129,6 +118,8 @@ class Database extends EventEmitter {
     /**
      * Closes the database
      * @returns {*}
+     * @example
+     * Database.close();
      */
     close() {
         return this.db.close();
@@ -138,6 +129,8 @@ class Database extends EventEmitter {
      * Deletes a key from the database
      * @param {string|number} key
      * @returns {boolean}
+     * @example
+     * Database.delete('key');
      */
     delete(key) {
         this._check();
@@ -149,6 +142,8 @@ class Database extends EventEmitter {
     /**
      * Deletes all the keys from the database
      * @returns {boolean}
+     * @example
+     * Database.deleteAll();
      */
     deleteAll() {
         this._check();
@@ -159,16 +154,40 @@ class Database extends EventEmitter {
     }
 
     /**
+     * Destroys the database (THE DATABASE CANNOT BE REVERT BACK ONCE DESTROYED)
+     * @returns {null}
+     * @example
+     * Database.destroy();
+     */
+    destroy() {
+        this._check();
+        this.deleteAll();
+        this.db.prepare(`DROP TABLE IF EXISTS '${this.name}'`).run();
+        return null;
+    }
+
+    /**
      * Finds a key matching the prefix supplied
      * @param {string|number} prefix
      * @returns {object}
+     * @example
+     * Database.find('key');
      */
     find(prefix) {
         this._check();
-        if (!prefix) throw new Error('Prefix is not specified');
+        if (!prefix) throw new Error('Prefix is not specified', 'EndbParameterError');
         const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
         if (!data) return null;
-        const row = this._row2Obj(data);
+        const row2Obj = function (rows) {
+            const _row = {};
+            for (const i in rows) {
+                const row = rows[i];
+                const key = row.key;
+                _row[key] = JSON.parse(row.value);
+            }
+            return _row;
+        }
+        const row = row2Obj(data);
         return row;
     }
 
@@ -176,31 +195,27 @@ class Database extends EventEmitter {
      * Gets the specified key from the database, if exists
      * @param {string|number} key
      * @returns {string|number|Object}
+     * @example
+     * Database.get('key');
      */
     get(key) {
         this._check();
-        if (!key) throw new Error('Key is not specified');
-        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (!key) throw new Error('Key is not specified', 'EndbParameterError');
+        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?);`).get(key);
         if (!data) return null;
         try {
             data.value = JSON.parse(data.value);
         } catch (err) {
             data.value;
         }
-
-        /**
-         * Emitted whenever get method is called
-         * @event Database#get
-         * @param {string|number|Object} data
-         */
-        this.emit('get', data);
-
         return data.value;
     }
 
     /**
      * Gets all the keys and values from the database
      * @returns {Array<Object>}
+     * @example
+     * Database.getAll();
      */
     getAll() {
         this._check();
@@ -213,6 +228,8 @@ class Database extends EventEmitter {
      * Whether or not, specified key exists
      * @param {string|number} key
      * @returns {boolean}
+     * @example
+     * Database.has('key');
      */
     has(key) {
         this._check();
@@ -220,54 +237,25 @@ class Database extends EventEmitter {
         return data ? true : false;
     }
 
-    _row2Obj(rows) {
-        const _row = {};
-        for (const i in rows) {
-            const row = rows[i];
-            const key = row.key;
-            _row[key] = JSON.parse(row.value);
-        }
-        return _row;
-    }
-
     /**
      * Sets a key and value to the database
      * @param {string|number} key
      * @param {string|number|Object} value
      * @returns {Object}
+     * @example
+     * Database.set('key', 'value');
      */
     set(key, value) {
         this._check();
-        if (!key || !value) throw new Error('Key and value are not specified');
-        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        if (!selected) {
-            this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
-            selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
+            throw new Error('Key must be string or number', 'EndbTypeError');
         }
-        selected = JSON.parse(selected.value);
-        try {
-            selected = JSON.parse(selected);
-        } catch (err) {}
-        value = typeof value === 'object' ? JSON.stringify(value) : value;
-        this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(key, value);
-        let updated = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key).value;
-        if (updated === '{}') {
-            return null;
-        } else {
-            updated = JSON.parse(updated);
-            try {
-                updated = JSON.parse(updated);
-            } catch (err) {}
-        }
-
-        /**
-         * Emitted whenever set method is called
-         * @event Database#set
-         * @param {string|number|Object} data
-         */
-        this.emit('set', updated);
-
-        return updated;
+        value = JSON.stringify(value);
+        this.db.prepare(`INSERT OR REPLACE INTO ${this.name} (key, value) VALUES (?, ?);`).run(key, value);
+        return {
+            key,
+            value
+        };
     }
 
     /**
@@ -275,37 +263,24 @@ class Database extends EventEmitter {
      * @param {string|number} key
      * @param {number} value
      * @returns {number}
+     * @example
+     * Database.subtract('key', 1);
      */
     subtract(key, value) {
         this._check();
-        if (typeof value !== 'number') throw new Error('Value is not specified');
+        if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
+            throw new Error('Key must be string or number', 'EndbTypeError');
+        }
+        if (_.isNil(value) || _.isNaN(value)) {
+            throw new Error('Value must be a number', 'EndbTypeError');
+        }
         let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         if (!selected) {
-            this.db.prepare(`INSERT INTO ${this.name} (key, value) VALUES (?, ?)`).run(key, '{}');
-            selected = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+            throw new Error('Muthafucka')
         }
-        if (selected.value === '{}') {
-            selected.value = 0;
-        } else {
-            selected.value = JSON.parse(selected.value);
-        }
-        try {
-            selected.value = JSON.parse(selected);
-        } catch (err) {}
-        if (isNaN(selected.value)) throw new Error('Value is not specified');
-        value = parseInt(selected.value, 10) - parseInt(value, 10);
-        value = JSON.stringify(value);
-        this.db.prepare(`UPDATE ${this.name} SET value = (?) WHERE key = (?)`).run(value, key);
-        let updated = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key).value;
-        if (updated === '{}') {
-            return null;
-        } else {
-            updated = JSON.parse(updated);
-            try {
-                updated = JSON.parse(updated);
-            } catch (err) {}
-            return updated;
-        }
+        const val = _.toNumber(selected.value) - _.toNumber(value);
+        this.set(key, val);
+        return value;
     }
 }
 

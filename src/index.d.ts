@@ -15,18 +15,17 @@ declare module 'endb' {
 
         public add(key: string | number, value: number): number;
         public backup(name: string): void;
-        private _check(): void;
-        public close(): void;
+        private _check(): null;
+        public close(): any;
         public delete(key: string | number): boolean;
         public deleteAll(): boolean;
+        public destroy(): null;
         public find(prefix: string | number): object; 
         public get(key: string | number): string | number | object;
         public getAll(): object[];
         public has(key: string | number): boolean;
-        private _row2Obj(rows: Array<any>): void;
         public set(key: string | number, value: string | number | object): object;
         public subtract(key: string | number, value: number): number;
-        private _validateOptions(options: EndbOptions): void;
     }
 
     type EndbOptions = {

@@ -6,7 +6,7 @@
   <a href="https://www.npmjs.com/package/endb"><img src="https://img.shields.io/npm/dt/endb.svg?maxAge=3600" alt="npm-downloads" /></a>
   <a href="https://david-dm.org/chroventer/endb"><img src="https://img.shields.io/david/chroventer/endb.svg?maxAge=3600"
       alt="dependencies" /></a>
-  <a href="https://github.com/chroventer/endb/stargazers"><img src="https://img.shields.io/github/stars/chroventer/endb.svg?style=social&label=Star&maxAge=2592000"></a>
+  <a href="https://github.com/chroventer/endb/stargazers"><img src="https://img.shields.io/github/stars/chroventer/endb.svg?style=social&label=Star"></a>
 </p>
 <p>
   <a href="https://nodei.co/npm/endb/"><img src="https://nodei.co/npm/endb.png?downloads=true&stars=true" alt="npm-info" /></a>
@@ -49,15 +49,14 @@ managing database.
 ```js
 const Endb = require('endb');
 const db = new Endb.Database({
-name: 'test' // optional
-path: './data' // optional
+  name: 'endb', // optional
 });
 
 db.set('account_1234567890', 'password12345'); // -> { key: 'account_1234567890', value: 'password12345' }
 db.set('account_123456789', {
-id: 123456789,
-password: 'password1234567890',
-checked: true
+  id: 123456789,
+  password: 'password1234567890',
+  checked: true
 }); // -> { key: 'account_123456789', value: '{"id":123456789,"password":"password1234567890","checked":true}' }
 
 db.get('account_1234567890'); // -> password12345
@@ -66,13 +65,14 @@ db.has('account_1234567890'); // -> true
 
 db.delete('account_1234567890'); // -> true
 
-db.getAll() // -> // -> [ { key: 'account_123456789', value:
-'{"id":123456789,"password":"password1234567890","checked":true}' } ]
+db.getAll() // -> // -> [ { key: 'account_123456789', value: '{"id":123456789,"password":"password1234567890","checked":true}' } ]
+
+db.deleteAll(); // -> true
 ```
 
 ## Links
 
-- [Documentation](https://endb.js.org)
-- [GitHub](https://github.com/chroventer/endb)
-- [NPM](https://npmjs.com/package/endb)
-- [Discord](https://discord.gg/3yXx8CN)
+- [Browse Documentation](https://endb.js.org) ([source](https://github.com/chroventer/endb/tree/master/docs))
+- [Install using NPM](https://npmjs.com/package/endb)
+- [Star on GitHub](https://github.com/chroventer/endb)
+- [Join Discord](https://discord.gg/3yXx8CN)
