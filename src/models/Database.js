@@ -250,8 +250,7 @@ class Database {
         if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
             throw new Error('Key must be string or number', 'EndbTypeError');
         }
-        value = JSON.stringify(value);
-        this.db.prepare(`INSERT OR REPLACE INTO ${this.name} (key, value) VALUES (?, ?);`).run(key, value);
+        this.db.prepare(`INSERT OR REPLACE INTO ${this.name} (key, value) VALUES (?, ?);`).run(key, JSON.stringify(value));
         return {
             key,
             value
