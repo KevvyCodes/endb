@@ -12,13 +12,13 @@
     "build:docs": "jsdoc -c .jsdoc.json"
   },
   "dependencies": {
-    "better-sqlite3": "^5.4.0"
+    "better-sqlite3": "^5.4.0",
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
     "@types/node": "^11.10.4",
     "docdash": "^1.0.3",
     "jsdoc": "^3.5.5",
-    "lodash": "^4.17.11",
     "typescript": "^3.3.3333"
   },
   "homepage": "https://endb.js.org",
