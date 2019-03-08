@@ -24,6 +24,7 @@ declare module 'endb' {
         public get(key: string | number): string | number | object;
         public getAll(): object[];
         public has(key: string | number): boolean;
+        public push(key: string | number, value: string | number | object): null;
         public set(key: string | number, value: string | number | object): object;
         public subtract(key: string | number, value: number): number;
     }

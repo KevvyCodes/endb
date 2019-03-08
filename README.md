@@ -14,8 +14,7 @@
 
 ## About
 
-Endb – Enhanced Database, is a simplified and powerful [Node.js](https://nodejs.org) module for storing, accessing, and
-managing database.
+Endb – Enhanced Database, is a simplified and powerful database for storing, accessing, and managing database.
 
 - Object-oriented
 - Persistent storage

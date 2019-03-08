@@ -7,7 +7,8 @@ const SQLite = require('better-sqlite3');
 const _ = require('lodash');
 
 /**
- * The database
+ * @class
+ * Endb – Enhanced Database, is a simplified and powerful database for storing, accessing, and managing database.
  */
 class Database {
     constructor(options = {}) {
@@ -17,6 +18,12 @@ class Database {
          * @type {string}
          */
         this.name = typeof options.name === 'string' ? options.name : 'endb';
+
+        /**
+         * The filename of the database
+         * @type {string}
+         */
+        this.fileName = typeof options.fileName === 'string' ? options.fileName : 'endb';
 
         /**
          * The data directory for the database
@@ -31,6 +38,12 @@ class Database {
         this.memory = typeof options.memory === 'boolean' ? options.memory : false;
 
         /**
+         * Whether or not, the database file must exist, if not throws and Error
+         * @type {boolean}
+         */
+        this.fileMustExist = typeof options.fileMustExist === 'boolean' ? options.fileMustExist : false;
+
+        /**
          * The timeout for the database
          * @type {number}
          */
@@ -42,9 +55,10 @@ class Database {
          * The SQLite connection of the database
          * @type {*}
          */
-        this.db = new SQLite(`${this.path}${path.sep}endb.sqlite`, {
+        this.db = new SQLite(`${this.path}${path.sep}${this.fileName}.sqlite`, {
             memory: this.memory,
-            timeout: this.timeout,
+            fileMustExist: this.fileMustExist,
+            timeout: this.timeout
         });
     }
 
@@ -82,7 +96,7 @@ class Database {
         if (_.isNil(value) || _.isNaN(value)) {
             throw new Error('Value must be a number', 'EndbTypeError');
         }
-        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?);`).get(key);
         let val;
         if (selected) {
             val = value;
@@ -112,7 +126,7 @@ class Database {
      * @private
      */
     _check() {
-        this.db.prepare(`CREATE TABLE IF NOT EXISTS ${this.name} (key TEXT PRIMARY KEY, value TEXT)`).run();
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS ${this.name} (key TEXT PRIMARY KEY, value TEXT);`).run();
     }
 
     /**
@@ -135,7 +149,7 @@ class Database {
     delete(key) {
         this._check();
         if (!key) return false;
-        this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?)`).run(key);
+        this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?);`).run(key);
         return true;
     }
 
@@ -147,9 +161,7 @@ class Database {
      */
     deleteAll() {
         this._check();
-        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        if (!data) return false;
-        this.db.prepare(`DELETE FROM ${this.name}`).run();
+        this.db.prepare(`DELETE FROM ${this.name};`).run();
         return true;
     }
 
@@ -236,6 +248,13 @@ class Database {
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
         return data ? true : false;
     }
+
+    /**
+     * Pushes a value into a key
+     * @param {string|number} key
+     * @param {string|number|Object} value
+     */
+    push(key, value) {}
 
     /**
      * Sets a key and value to the database

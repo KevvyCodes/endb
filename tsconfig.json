@@ -8,6 +8,6 @@
         "forceConsistentCasingInFileNames": true
     },
     "files": [
-        "src/index.d.ts"
+        "index.d.ts"
     ]
 }
