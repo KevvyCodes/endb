@@ -23,7 +23,7 @@ class Database {
          * The filename for the database
          * @type {string}
          */
-        this.fileName = typeof options.fileName === 'string' ? options.fileName : 'endb';
+        this.fileName = typeof options.fileName === 'string' ? options.fileName.replace(/[^a-zA-Z0-9]/g, '') : 'endb';
 
         /**
          * The path for the database
