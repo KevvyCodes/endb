@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>Database.js - Endb</title>
     
-    <meta name="description" content="Enhanced Database" />
+    <meta name="description" content="Endb – Enhanced Database, is a simplified and powerful database for storing, accessing, and managing database." />
     
     
     
@@ -37,7 +37,7 @@
     
     <input type="text" id="nav-search" placeholder="Search" />
     
-    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/chroventer/endb" target="_blank" class="menu-item" id="github-link" >GitHub</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm-link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a><ul class='methods'><li data-type='method' style='display: none;'><a href="Database.html#add">add</a></li><li data-type='method' style='display: none;'><a href="Database.html#backup">backup</a></li><li data-type='method' style='display: none;'><a href="Database.html#close">close</a></li><li data-type='method' style='display: none;'><a href="Database.html#delete">delete</a></li><li data-type='method' style='display: none;'><a href="Database.html#deleteAll">deleteAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#destroy">destroy</a></li><li data-type='method' style='display: none;'><a href="Database.html#find">find</a></li><li data-type='method' style='display: none;'><a href="Database.html#get">get</a></li><li data-type='method' style='display: none;'><a href="Database.html#getAll">getAll</a></li><li data-type='method' style='display: none;'><a href="Database.html#has">has</a></li><li data-type='method' style='display: none;'><a href="Database.html#set">set</a></li><li data-type='method' style='display: none;'><a href="Database.html#subtract">subtract</a></li></ul></li></ul>
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/endb/endb" target="_blank" class="menu-item" id="github-link" >GitHub</a></h2><h2><a href="https://npmjs.com/package/endb" target="_blank" class="menu-item" id="npm-link" >NPM</a></h2><h3>Classes</h3><ul><li><a href="Database.html">Database</a></li></ul>
 </nav>
 
 <div id="main">
@@ -61,28 +61,41 @@ const SQLite = require('better-sqlite3');
 const _ = require('lodash');
 
 /**
- * The database
+ * @class Database
+ * @classdesc Endb – Enhanced Database, is a simplified and powerful database for storing, accessing, and managing database.
  */
-class Database {
+module.exports = class Database {
     constructor(options = {}) {
 
         /**
-         * The name of the database
+         * The name for the table of the database
          * @type {string}
          */
         this.name = typeof options.name === 'string' ? options.name : 'endb';
 
         /**
-         * The data directory for the database
+         * The filename for the database
+         * @type {string}
+         */
+        this.fileName = typeof options.fileName === 'string' ? options.fileName : 'endb';
+
+        /**
+         * The path for the database
          * @type {string}
          */
         this.path = typeof options.path === 'string' ? path.resolve(process.cwd(), options.path) : path.resolve(process.cwd(), './');
 
         /**
-         * Whether or not, use the memory for database
+         * Whether or not, use the memory for the database
          * @type {boolean}
          */
         this.memory = typeof options.memory === 'boolean' ? options.memory : false;
+
+        /**
+         * Whether or not, the database file must exist, if not throws an Error
+         * @type {boolean}
+         */
+        this.fileMustExist = typeof options.fileMustExist === 'boolean' ? options.fileMustExist : false;
 
         /**
          * The timeout for the database
@@ -92,13 +105,19 @@ class Database {
 
         if (!fs.existsSync(this.path)) fs.mkdirSync(this.path);
 
+        if (this.fileMustExist === true &amp;&amp; !fs.existsSync(this.fileName)) {
+            throw new Error(`${this.fileName} file does not exists`);
+        }
+
         /**
-         * The SQLite connection of the database
+         * The SQLite connection for the database
          * @type {*}
+         * @private
          */
-        this.db = new SQLite(`${this.path}${path.sep}endb.sqlite`, {
+        this.db = new SQLite(`${this.path}${path.sep}${this.fileName}.sqlite`, {
             memory: this.memory,
-            timeout: this.timeout,
+            fileMustExist: this.fileMustExist,
+            timeout: this.timeout
         });
     }
 
@@ -107,7 +126,7 @@ class Database {
      * @returns {number}
      */
     get count() {
-        const data = this.db.prepare(`SELECT count(*) FROM '${this.name}'`).get();
+        const data = this.db.prepare(`SELECT count(*) FROM '${this.name}';`).get();
         return data['count(*)'];
     }
 
@@ -116,7 +135,7 @@ class Database {
      * @returns {Array&lt;string>}
      */
     get indexes() {
-        const rows = this.db.prepare(`SELECT key FROM '${this.name}'`).all();
+        const rows = this.db.prepare(`SELECT key FROM '${this.name}';`).all();
         return rows.map((row) => row.key);
     }
 
@@ -136,7 +155,7 @@ class Database {
         if (_.isNil(value) || _.isNaN(value)) {
             throw new Error('Value must be a number', 'EndbTypeError');
         }
-        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?);`).get(key);
         let val;
         if (selected) {
             val = value;
@@ -155,7 +174,9 @@ class Database {
      * Database.backup('mybackup');
      */
     backup(name = `backup-${Date.now()}`) {
-        if (name &amp;&amp; typeof name !== 'string') throw new Error('Name is not specified', 'EndbParameterError');
+        if (_.isNil(key) || !['String'].includes(key.constructor.name)) {
+            throw new Error('Name must be a string', 'EndbTypeError');
+        }
         this.db.backup(`${name}.sqlite`);
         return undefined;
     }
@@ -171,12 +192,13 @@ class Database {
 
     /**
      * Closes the database
-     * @returns {*}
+     * @returns {void}
      * @example
      * Database.close();
      */
     close() {
-        return this.db.close();
+        this.db.close();
+        return undefined;
     }
 
     /**
@@ -188,8 +210,10 @@ class Database {
      */
     delete(key) {
         this._check();
-        if (!key) return false;
-        this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?)`).run(key);
+        if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
+            throw new Error('Key must be a string or number', 'EndbTypeError');
+        }
+        this.db.prepare(`DELETE FROM ${this.name} WHERE key = (?);`).run(key);
         return true;
     }
 
@@ -201,23 +225,21 @@ class Database {
      */
     deleteAll() {
         this._check();
-        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        if (!data) return false;
-        this.db.prepare(`DELETE FROM ${this.name}`).run();
+        this.db.prepare(`DELETE FROM '${this.name}';`).run();
         return true;
     }
 
     /**
      * Destroys the database (THE DATABASE CANNOT BE REVERT BACK ONCE DESTROYED)
-     * @returns {null}
+     * @returns {void}
      * @example
      * Database.destroy();
      */
     destroy() {
         this._check();
         this.deleteAll();
-        this.db.prepare(`DROP TABLE IF EXISTS '${this.name}'`).run();
-        return null;
+        this.db.prepare(`DROP TABLE IF EXISTS '${this.name}';`).run();
+        return undefined;
     }
 
     /**
@@ -229,15 +251,17 @@ class Database {
      */
     find(prefix) {
         this._check();
-        if (!prefix) throw new Error('Prefix is not specified', 'EndbParameterError');
-        const data = db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?)`).all([`${prefix}%`]);
+        if (_.isNil(prefix) || !['String', 'Number'].includes(prefix.constructor.name)) {
+            throw new Error('Prefix must be a string or number', 'EndbTypeError');
+        }
+        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key LIKE (?);`).all([`${prefix}%`]);
         if (!data) return null;
         const row2Obj = function (rows) {
             const _row = {};
             for (const i in rows) {
-                const row = rows[i];
-                const key = row.key;
-                _row[key] = JSON.parse(row.value);
+                const index = rows[i];
+                const key = index.key;
+                _row[key] = JSON.parse(index.value);
             }
             return _row;
         }
@@ -254,14 +278,14 @@ class Database {
      */
     get(key) {
         this._check();
-        if (!key) throw new Error('Key is not specified', 'EndbParameterError');
+        if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
+            throw new Error('Key must be a string or number', 'EndbTypeError');
+        }
         const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?);`).get(key);
         if (!data) return null;
         try {
             data.value = JSON.parse(data.value);
-        } catch (err) {
-            data.value;
-        }
+        } catch (err) {}
         return data.value;
     }
 
@@ -287,8 +311,21 @@ class Database {
      */
     has(key) {
         this._check();
-        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
+        if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
+            throw new Error('Key must be a string or number', 'EndbTypeError');
+        }
+        const data = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?);`).get(key);
         return data ? true : false;
+    }
+
+    /**
+     * Pushes a value into a key
+     * @param {string|number} key
+     * @param {string|number|Object} value
+     * @returns {*}
+     */
+    push(key, value) {
+        return console.log('WIP\tKey: ', key, '\Value: ', value);
     }
 
     /**
@@ -302,7 +339,10 @@ class Database {
     set(key, value) {
         this._check();
         if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
-            throw new Error('Key must be string or number', 'EndbTypeError');
+            throw new Error('Key must be a string or number', 'EndbTypeError');
+        }
+        if (_.isNil(value)) {
+            throw new Error('Value must be either a string, number, or object', 'EndbTypeError');
         }
         this.db.prepare(`INSERT OR REPLACE INTO ${this.name} (key, value) VALUES (?, ?);`).run(key, JSON.stringify(value));
         return {
@@ -322,22 +362,22 @@ class Database {
     subtract(key, value) {
         this._check();
         if (_.isNil(key) || !['String', 'Number'].includes(key.constructor.name)) {
-            throw new Error('Key must be string or number', 'EndbTypeError');
+            throw new Error('Key must be a string or number', 'EndbTypeError');
         }
         if (_.isNil(value) || _.isNaN(value)) {
             throw new Error('Value must be a number', 'EndbTypeError');
         }
-        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?)`).get(key);
-        if (!selected) {
-            throw new Error('Muthafucka')
+        let selected = this.db.prepare(`SELECT * FROM ${this.name} WHERE key = (?);`).get(key);
+        let val;
+        if (selected) {
+            val = value;
+        } else if (!selected) {
+            val = 0;
         }
-        const val = _.toNumber(selected.value) - _.toNumber(value);
-        this.set(key, val);
+        this.set(key, _.toNumber(value) - _.toNumber(val));
         return value;
     }
-}
-
-module.exports = Database;</code></pre>
+}</code></pre>
         </article>
     </section>
 
@@ -351,7 +391,7 @@ module.exports = Database;</code></pre>
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Mar 08 2019 00:57:05 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Mar 09 2019 17:23:52 GMT+0400 (Gulf Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
