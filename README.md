@@ -34,7 +34,7 @@ Endb – Enhanced Database, is a simplified and powerful database for storing, a
 
 ### Mac
 
-- Install XCode
+- Install [XCode](https://developer.apple.com/xcode)
 - Run `npm i -g node-gyp` in Terminal
 - Run `node-gyp --python /path/to/python2.7` (skip this step if you didn't install python 3.x)
 - Run `npm i endb`
