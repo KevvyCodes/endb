@@ -10,7 +10,7 @@ const _ = require('lodash');
  * @class Database
  * @classdesc Endb – Enhanced Database, is a simplified and powerful database for storing, accessing, and managing database.
  */
-module.exports = class Database {
+class Database {
     constructor(options = {}) {
 
         /**
@@ -324,3 +324,5 @@ module.exports = class Database {
         return value;
     }
 }
+
+module.exports = Database;
