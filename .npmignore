@@ -16,8 +16,9 @@ yarn-error.log*
 docs/
 .eslintrc.json
 .travis.yml
-.github/
+test/
 
 # Git
+.github/
 .gitattributes
 .gitignore
