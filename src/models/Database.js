@@ -271,6 +271,7 @@ class Database {
      * @returns {*}
      */
     push(key, value) {
+        this._check();
         return console.log('WIP\tKey: ', key, '\Value: ', value);
     }
 
